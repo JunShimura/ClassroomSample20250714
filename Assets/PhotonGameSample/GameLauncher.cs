@@ -27,7 +27,7 @@ public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
     /// <summary>
     /// ゲーム開始時にプレイヤーが参加したときのイベント。
     /// </summary>
-    public event Action<NetworkRunner, PlayerRef> OnPlayerJoined;
+    public event Action<NetworkRunner, PlayerRef,NetworkObject> OnPlayerJoined;
 
     private async void Start()
     {
@@ -44,6 +44,8 @@ public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
     void INetworkRunnerCallbacks.OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player) { }
     void INetworkRunnerCallbacks.OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        NetworkObject spawnedObject = null;
+
         // セッションへ参加したプレイヤーが自分自身かどうかを判定する
         if (player == runner.LocalPlayer)
         {
@@ -51,7 +53,7 @@ public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
             var playerIndex = runner.SessionInfo.PlayerCount - 1;
             var spawnedPosition = spawnPosition[playerIndex % spawnPosition.Length];
             // 自分自身のアバターをスポーンする
-            runner.Spawn(playerAvatarPrefab, spawnedPosition, Quaternion.identity, onBeforeSpawned: (_, networkObject) =>
+            spawnedObject=runner.Spawn(playerAvatarPrefab, spawnedPosition, Quaternion.identity, onBeforeSpawned: (_, networkObject) =>
             {
                 // プレイヤー名のネットワークプロパティの初期値として、ランダムな名前を設定する
                 networkObject.GetComponent<PlayerAvatar>().NickName = $"Player{UnityEngine.Random.Range(0, 10000)}";
@@ -59,11 +61,13 @@ public class GameLauncher : MonoBehaviour, INetworkRunnerCallbacks
             // マスタークライアント（ホスト）のみアイテムをスポーン
             if (runner.IsSharedModeMasterClient)
             {
-                var spawnd=runner.Spawn(itemPrefab, new Vector3(0.0f, 0.0f, 5.0f), Quaternion.identity);
+                var spawnd=runner.Spawn(itemPrefab, new Vector3(2.0f, 1.0f, 5.0f), Quaternion.identity);
+                Debug.Log($"Item Spawned:{spawnd}");
+                spawnd = runner.Spawn(itemPrefab, new Vector3(-2.0f, 1.0f, 5.0f), Quaternion.identity);
                 Debug.Log($"Item Spawned:{spawnd}");
             }
         }
-        OnPlayerJoined?.Invoke(runner, player);
+        OnPlayerJoined?.Invoke(runner, player,spawnedObject);
     }
     void INetworkRunnerCallbacks.OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
     void INetworkRunnerCallbacks.OnInput(NetworkRunner runner, NetworkInput input) { }

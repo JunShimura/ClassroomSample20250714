@@ -48,12 +48,17 @@ public class Item : NetworkBehaviour    // ItemƒNƒ‰ƒX‚ÍNetworkBehaviour‚ğŒp³‚µ‚
         Debug.Log($"Item Triggered by: {other.name}");
         // ƒAƒCƒeƒ€‚ÉÕ“Ë‚µ‚½ƒvƒŒƒCƒ„[‚ÌƒAƒoƒ^[‚ğæ“¾
         var playerAvatar = other.GetComponent<PlayerAvatar>();
-        if (playerAvatar != null)
+        if (playerAvatar != null && playerAvatar)
         {
             // ƒAƒCƒeƒ€‚ğæ“¾‚µ‚½ƒvƒŒƒCƒ„[‚É’Ê’m
             playerAvatar.OnItemCollected(this);
             // ƒAƒCƒeƒ€‚ğíœ
+            Destroy(GetComponent<Collider>());
             Runner.Despawn(Object);
+        }
+        else
+        {
+            Debug.LogWarning("Item collected by non-player object: " + other.name);
         }
     }
 }

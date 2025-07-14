@@ -1,12 +1,12 @@
 using Fusion;
 using UnityEngine;
 using TMPro;
+using System;
 
 public class PlayerAvatar : NetworkBehaviour
 {
-    [SerializeField]
-    public TextMeshPro scoreText;
-    [Networked]
+    public event Action<PlayerAvatar, Item> OnItemCollectedAction;
+
     public NetworkString<_16> NickName { get; set; }
 
     private NetworkCharacterController characterController;
@@ -49,9 +49,11 @@ public class PlayerAvatar : NetworkBehaviour
 
     public void OnItemCollected(Item item)
     {
-        // アイテムを取得したときの処理
-        Debug.Log($"{NickName.Value} collected an item: {item.Object.Id}");
-        scoreText.text = $"{NickName.Value} collected an item: {item.Object.Id}"; // スコアの更新
-        // ここにアイテム取得時のロジックを追加できます
+        if (HasStateAuthority)
+        {
+            // アイテムを取得したときの処理
+            Debug.Log($"{NickName.Value} collected an item: {item.Object.Id}");
+            OnItemCollectedAction?.Invoke(this, item);
+        }
     }
 }
